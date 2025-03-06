@@ -22,13 +22,29 @@ class ModuleSymvers:
     def __init__(self, filename):
         f = open(filename)
         self.symvers = {}
+
         for line in f:
             line = line.strip()
             record = line.split('\t')
+
             if len(record) < 4 or len(record) > 5:
                 raise ValueError('unrecognized line in Module.symvers: \"' +
                                  repr(line) + '\"')
+
             if record[1] in self.symvers:
                 raise ValueError('multiple exports of \"' + record[1] +
                                  '\" found in Module.symvers')
-            self.symvers[record[1]] = os.path.basename(record[2])
+
+            self.symvers[record[1]] = record[2]
+
+
+    def __contains__(self, other):
+        return other in self.symvers
+
+
+    def get_sym_module_name(self, sym):
+        return os.path.basename(self.symvers[sym])
+
+
+    def get_sym_module_path(self, sym):
+        return self.symvers[sym].module_path

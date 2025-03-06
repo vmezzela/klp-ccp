@@ -270,8 +270,8 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
             return False
 
         exporter = None
-        if function_name in self._mod_symvers.symvers:
-            exporter = self._mod_symvers.symvers[function_name]
+        if function_name in self._mod_symvers:
+            exporter = self._mod_symvers.get_sym_module_name(function_name)
 
         # If linkage is internal, then a definition must be available
         # in the compilation unit.
@@ -464,7 +464,7 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
 
         exporter = None
         if object_name in self._mod_symvers.symvers:
-            exporter = self._mod_symvers.symvers[object_name]
+            exporter = self._mod_symvers.get_sym_module_name(object_name)
 
         if not object_name in self._patched_obj_elf.elf_syms:
             if linkage == ccp.Linkage.EXTERNAL:
