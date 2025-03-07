@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from enum import IntEnum
 from functools import total_ordering
 
+from .utils import clean_relative_path
+
 @total_ordering
 @dataclass
 class NodeId:
@@ -28,6 +30,10 @@ class NodeId:
     filename: str
     line: int
     column: int
+
+    def __post_init__(self):
+        # Drop the leading ".."
+        self.filename = str(clean_relative_path(self.filename))
 
     def __lt__(self, other):
         if self.ipa_id != other.ipa_id:
