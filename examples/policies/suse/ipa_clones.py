@@ -375,3 +375,13 @@ class IpaClones:
             return False
 
         return all(node.removed for node in self._nodes_by_name[name])
+
+
+    def get_node_file_by_name(self, name):
+        # TODO:it should take an ID instead of the name, because there could be
+        # different nodes with the same name
+        #
+        # Edit: False, ipa-clones are emitted per compilation unit, thus no name conflicts
+        filenames = set([node.node_id.filename for node in self._nodes_by_name[name]])
+        assert len(filenames) == 1
+        return filenames.pop()

@@ -21,6 +21,7 @@ import ccp
 from .mod_symvers import ModuleSymvers
 from .target_mod_elf import TargetModElf
 from .ipa_clones import IpaClones
+from .dwarf import get_sym_debug_info
 
 import os
 import sys
@@ -99,6 +100,7 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
                     'invalid value for $KCP_NO_COMPLETE_PATCHED_FUNCS'
                 )
         self._patched_funcs = set(self._cfg_patched_funcs)
+        print("debug: initial set: ", self._patched_funcs)
         if not no_complete_patched_funcs:
             for f in self._cfg_patched_funcs:
                 spawns = self._patched_src_ipa_clones.find_spawns_recursive(f)
@@ -106,11 +108,65 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
                     continue
                 for (f, optimized) in spawns.items():
                     if not optimized:
-                        self._patched_funcs.add(f)
+                        if f not in self._patched_funcs:
+                            self._patched_funcs.add(f)
+                            print("debug: adding to set: ", f)
                     else:
+
+                        print("debug: warning: ", f)
                         print('warning: optimized function \"' +
                               f +'\" in callgraph', file=sys.stderr)
 
+        print("debug: inlining set: ", self._patched_funcs)
+
+        # at this point, self._patched_funcs contains the set of function
+        # affected, but not all of them can be livepatched
+        for f in set(self._patched_funcs):
+            # The function to be livepatched needs to be in the symbol table of
+            # the target object, otherwise drop them from the set of function
+            # to patch: their callers will livepatch them.
+            #
+            # That's not enough though. There can be more than one function
+            # defined with the same name in the module. In other words: more
+            # function can have the same name. To make the things even more
+            # complicated, from the elf we don't know which function is which,
+            # so we don't know which one we have to livepatch. Even worse, we
+            # don't know which of those gets inlined or emitted. Thus, even if
+            # we have only one symbol in the symtab, we still need to check
+            # whether this is the one we need to livepathc.
+            #
+            # To distinguish among different function with the same name, we
+            # retrieve the address of the function in the target compilation
+            # unit (should be unique), and compare with the address found in
+            # the symtab
+            #
+            # TODO:: in case there are more than one symbol with same name in
+            # the symtab, we should inform the livepatching infrastructure
+            # which one to patch using the `old_symps`
+
+            try:
+                function_filename = self._patched_src_ipa_clones.get_node_file_by_name(f)
+            except KeyError:
+                continue
+
+            addr = get_sym_debug_info(self._patched_obj_elf.elf, f, function_filename)
+
+            # TODO: perhaps it's worth moving this at the beginning of the
+            # iteration and 'continue' if sym is not present
+            syms = self._patched_obj_elf.elf_syms.get(f, None)
+            sym = None
+            if syms:
+                assert len(syms) == 1
+                sym = syms[0]
+
+            if not sym or not addr and sym['st_value'] != addr:
+                # FIXME: We need to make sure the function we're dropping is
+                # not a leaf of the inlining graph, otherwise we're not
+                # livepatching the affected functions
+                print("debug: dropping from set: ", f)
+                self._patched_funcs.remove(f)
+
+        print("debug: final set: ", self._patched_funcs)
 
         patched_obj_ko = os.path.basename(self._cfg_patched_obj_filename)
         if patched_obj_ko.startswith('vmlinux'):
