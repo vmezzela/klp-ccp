@@ -57,7 +57,7 @@ done
 %package policy-suse-klp
 Summary:	SUSE klp-ccp kernel livepatch policy
 Requires:	klp-ccp == %{version}
-Requires:	python311-pyelftools
+Requires:	python313-pyelftools
 
 %description policy-suse-klp
 klp-ccp policy implementation used by SUSE for creating kernel
