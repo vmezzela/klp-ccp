@@ -16,4 +16,13 @@
  * along with klp-ccp. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// TODO:populate with arm specific options
+{
+  .name = "mgeneral-regs-only",
+  .code = opt_code_aarch64_mgeneral_regs_only,
+  .comp = gcc_cmdline_parser::option::comp_target,
+  .arg = gcc_cmdline_parser::option::arg_none,
+  .reject_negative = true,
+  .alias = {},
+  .negative = nullptr,
+  .min_gcc_version = {7, 1, 0},
+},
