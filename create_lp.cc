@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with klp-ccp. If not, see <https://www.gnu.org/licenses/>.
  */
+#include <iostream>
 
 #include <set>
 #include <map>
@@ -24,6 +25,8 @@
 #include <functional>
 #include <algorithm>
 #include <queue>
+#include "code_remark.hh"
+#include "output_remark.hh"
 #include "pp_token.hh"
 #include "ast.hh"
 #include "ast_impl.hh"
@@ -9046,6 +9049,18 @@ bool _lp_writer::_emit(function_definition_info &fdi,
     _rewrite_references(fdi.declarator_deps, tic);
     _rewrite_references(fdi.body_deps, tic);
 
+
+    if (fdi.is_patched) {
+      // NOTE: tokens range matches with the culprit
+      code_remark remark = code_remark(code_remark::severity::warning, "test", _ai.atu.get_pp_result(), fd.get_tokens_range());
+      std::cerr << "DBG:" << remark << std::endl;
+
+      const pp_token_index index = fd.get_declarator().get_direct_declarator_id().get_id_tok()-1;
+      const pp_tokens_range r{index, index + 1};
+      code_remark remark_2 = code_remark(code_remark::severity::warning, "test", _ai.atu.get_pp_result(), r);
+      std::cerr << "DBG:" << remark_2 << std::endl;
+    }
+    // NOTE: CULPRIT IS HERE
     _apply_sym_mod_to_id_tok(fdi.sym_mod, false,
 			     (fd.get_declarator().get_direct_declarator_id()
 			      .get_id_tok()),
