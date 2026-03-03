@@ -187,15 +187,7 @@ namespace klp
 
 	enum _cmodel
 	{
-	  // TODO:
-	  _cm_32,
-	  _cm_small,
-	  _cm_kernel,
-	  _cm_medium,
-	  _cm_large,
-	  _cm_small_pic,
-	  _cm_medium_pic,
-	  _cm_large_pic,
+	  _cm_unused,
 	};
 	_cmodel _cmodel;
 	bool _cmodel_set;
