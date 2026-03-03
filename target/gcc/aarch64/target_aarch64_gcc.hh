@@ -202,9 +202,7 @@ namespace klp
 
 	enum _fpmath_bit
 	{
-	  // TODO:
-	  _fpmath_bit_387,
-	  _fpmath_bit_sse,
+	  _fpmath_bit_unused,
 	  __fpmath_bit_max,
 	};
 	std::bitset<__fpmath_bit_max> _fpmath;

@@ -462,7 +462,7 @@ opts_aarch64(target_aarch64_gcc &t) noexcept
   : _t(t), _valid_target_flags(_init_valid_target_flags(t.get_gcc_version())),
     _valid_isa_flags(_init_valid_isa_flags(t.get_gcc_version())),
     _arch(nullptr), _tune(nullptr),
-    _cmodel(_cm_32), _cmodel_set(false), _fpmath(1UL << _fpmath_bit_387),
+    _cmodel(_cm_32), _cmodel_set(false), _fpmath(1UL << _fpmath_bit_unused),
     _fpmath_set(false), force_align_arg_pointer(false),
     force_align_arg_pointer_set(false), preferred_stack_boundary_arg(0),
     preferred_stack_boundary_arg_set(false), preferred_stack_boundary(0),
