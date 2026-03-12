@@ -115,6 +115,8 @@ namespace klp
 
 	void option_override();
 
+	unsigned int get_arch_version() const noexcept;
+
       private:
 	enum target_flag
 	{
@@ -184,6 +186,7 @@ namespace klp
 	std::string _arch_string;
 	std::string _tune_string;
 	std::string _tune_ctrl_string;
+	unsigned int _arch_version;
 
 	enum _cmodel
 	{

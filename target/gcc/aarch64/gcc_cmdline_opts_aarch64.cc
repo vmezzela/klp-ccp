@@ -17,6 +17,15 @@
  */
 
 {
+  .name = "march=",
+  .code = opt_code_aarch64_march,
+  .comp = gcc_cmdline_parser::option::comp_target,
+  .arg = gcc_cmdline_parser::option::arg_joined,
+  .reject_negative = true,
+  .alias = {},
+  .negative = "march="
+},
+{
   .name = "mgeneral-regs-only",
   .code = opt_code_aarch64_mgeneral_regs_only,
   .comp = gcc_cmdline_parser::option::comp_target,
@@ -25,4 +34,13 @@
   .alias = {},
   .negative = nullptr,
   .min_gcc_version = {7, 1, 0},
+},
+{
+  .name = "mtune=",
+  .code = opt_code_aarch64_mtune,
+  .comp = gcc_cmdline_parser::option::comp_target,
+  .arg = gcc_cmdline_parser::option::arg_joined,
+  .reject_negative = true,
+  .alias = {},
+  .negative = "mtune="
 },

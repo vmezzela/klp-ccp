@@ -16,7 +16,9 @@
  * along with klp-ccp. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
 #include "ast.hh"
+#include "cmdline_except.hh"
 #include "execution_charset_encoder_iconv.hh"
 #include "preprocessor.hh"
 #include "target_aarch64_gcc.hh"
@@ -28,6 +30,8 @@ enum opt_code_aarch64
 {
   opt_code_aarch64_unused = 0,
 
+  opt_code_aarch64_march,
+  opt_code_aarch64_mtune,
   opt_code_aarch64_mgeneral_regs_only,
 };
 
@@ -356,10 +360,6 @@ void target_aarch64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
       builtin_object_macros = {
           {"__aarch64__", "1"},
           {"__ARM_64BIT_STATE", "1"},
-          // TODO: Or 9, depending on the specific target, perhaps this macro
-          // should be controlled by the arm version (given on the command line
-          // I guess)
-          {"__ARM_ARCH", "8"},
 
           {"__SIZE_TYPE__", "long unsigned int"},
           {"__SIG_ATOMIC_TYPE__", "int"},
@@ -441,6 +441,10 @@ void target_aarch64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
   for (const auto &bom : builtin_object_macros)
     pp.register_builtin_macro(bom.first, bom.second);
 
+  // __ARM_ARCH is controlled by -march= and resolved in option_override().
+  pp.register_builtin_macro("__ARM_ARCH",
+			    std::to_string(_opts_aarch64.get_arch_version()));
+
   if (_is_int_mode_enabled(common_int_mode_kind::cimk_TI)) {
     pp.register_builtin_macro("__SIZEOF_INT128__", "sizeof(__int128)");
   }
@@ -465,11 +469,80 @@ _init_valid_isa_flags(const gcc_cmdline_parser::gcc_version &ver)
   return flags;
 }
 
+
+// This corresponds to the aarch64_arches table from GCC's
+// gcc/config/aarch64/aarch64.cc.  For now, only the architecture
+// version number is tracked; ISA extension features (like +crypto,
+// +sve, etc.) are not yet modelled.
+struct target_aarch64_gcc::opts_aarch64::_pta
+{
+  using gcc_version = gcc_cmdline_parser::gcc_version;
+
+  const char * const name;
+  const unsigned int arch_version;
+  const gcc_version min_gcc_version;
+  const gcc_version max_gcc_version;
+
+  static const struct _pta*
+  lookup(const char * const name, const gcc_version &ver)
+    noexcept;
+};
+
+const target_aarch64_gcc::opts_aarch64::_pta*
+target_aarch64_gcc::opts_aarch64::_pta::
+lookup(const char * const name, const gcc_version &ver)
+  noexcept
+{
+  // This corresponds to the aarch64_arches[] table from GCC's
+  // gcc/config/aarch64/aarch64.cc.
+  //
+  // GCC's -march= accepts strings like "armv8-a", "armv8.1-a",
+  // etc., optionally followed by "+<extension>" features.  For now
+  // we only match the base architecture name.  The caller is
+  // expected to strip any "+<extension>" suffix before calling
+  // lookup().
+  static const _pta arch_table[] = {
+    { "armv8-a",   8 },
+    { "armv8.1-a", 8 },
+    { "armv8.2-a", 8 },
+    { "armv8.3-a", 8 },
+    { "armv8.4-a", 8 },
+    { "armv8.5-a", 8, .min_gcc_version = {9, 1, 0} },
+    { "armv8.6-a", 8, .min_gcc_version = {11, 1, 0} },
+    { "armv8.7-a", 8, .min_gcc_version = {12, 1, 0} },
+    { "armv8.8-a", 8, .min_gcc_version = {12, 1, 0} },
+    { "armv8.9-a", 8, .min_gcc_version = {14, 1, 0} },
+    { "armv8-r",   8, .min_gcc_version = {11, 1, 0} },
+    { "armv9-a",   9, .min_gcc_version = {11, 1, 0} },
+    { "armv9.1-a", 9, .min_gcc_version = {12, 1, 0} },
+    { "armv9.2-a", 9, .min_gcc_version = {12, 1, 0} },
+    { "armv9.3-a", 9, .min_gcc_version = {12, 1, 0} },
+    { "armv9.4-a", 9, .min_gcc_version = {14, 1, 0} },
+    { nullptr },
+  };
+
+  for (const _pta *r = arch_table; r->name; ++r) {
+    if (!std::strcmp(r->name, name) &&
+	r->min_gcc_version <= ver && ver <= r->max_gcc_version) {
+      return r;
+    }
+  }
+
+  return nullptr;
+}
+
+unsigned int
+target_aarch64_gcc::opts_aarch64::get_arch_version() const noexcept
+{
+  return _arch_version;
+}
+
+
 target_aarch64_gcc::opts_aarch64::
 opts_aarch64(target_aarch64_gcc &t) noexcept
   : _t(t), _valid_target_flags(_init_valid_target_flags(t.get_gcc_version())),
     _valid_isa_flags(_init_valid_isa_flags(t.get_gcc_version())),
-    _arch(nullptr), _tune(nullptr),
+    _arch(nullptr), _tune(nullptr), _arch_version(8),
     _cmodel(_cm_unused), _cmodel_set(false), _fpmath(1UL << _fpmath_bit_unused),
     _fpmath_set(false), force_align_arg_pointer(false),
     force_align_arg_pointer_set(false), preferred_stack_boundary_arg(0),
@@ -490,9 +563,61 @@ handle_opt(const gcc_cmdline_parser::option * const o,
   case opt_code_aarch64_unused:
     break;
 
+  case opt_code_aarch64_march:
+    assert(val);
+    assert(!generated);
+    _arch_string = val;
+    break;
+
+  case opt_code_aarch64_mtune:
+    assert(val);
+    assert(!generated);
+    _tune_string = val;
+    break;
+
   case opt_code_aarch64_mgeneral_regs_only:
     assert(!negative);
+    break;
   }
 }
 
-void target_aarch64_gcc::opts_aarch64::option_override() { }
+void target_aarch64_gcc::opts_aarch64::option_override()
+{
+  const gcc_cmdline_parser::gcc_version &ver = _t.get_gcc_version();
+
+  // Default to armv8-a if no -march= was given.
+  if (_arch_string.empty())
+    _arch_string = "armv8-a";
+
+  // GCC's -march= accepts "armv8.2-a+crypto+fp16" style strings.
+  // Strip any "+<extension>" suffixes for the architecture lookup;
+  // extension features are not yet modelled.
+  std::string base_arch = _arch_string;
+  {
+    const auto plus_pos = base_arch.find('+');
+    if (plus_pos != std::string::npos)
+      base_arch.erase(plus_pos);
+  }
+
+  _arch = _pta::lookup(base_arch.c_str(), ver);
+  if (!_arch) {
+    throw cmdline_except{
+      "unrecognized value (" + _arch_string + ") for -march"
+    };
+  }
+
+  _arch_version = _arch->arch_version;
+
+  // If no -mtune= was given, default to the architecture string.
+  if (_tune_string.empty())
+    _tune_string = base_arch;
+
+  // Look up the tune target.  For aarch64, the tune string can be
+  // either a processor name or an architecture name.  Since we only
+  // model architecture names for now, the lookup may return nullptr
+  // for processor names; in that case we silently fall back to the
+  // arch entry.
+  _tune = _pta::lookup(_tune_string.c_str(), ver);
+  if (!_tune)
+    _tune = _arch;
+}
