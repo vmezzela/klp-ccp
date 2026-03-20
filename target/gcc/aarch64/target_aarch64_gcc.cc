@@ -216,7 +216,16 @@ mpa::limbs::size_type target_aarch64_gcc::_biggest_alignment_bytes_log2()
 std::shared_ptr<const types::object_type>
 target_aarch64_gcc::_create_builtin_va_list_type() const
 {
-  // TODO:
+  // See gcc/config/aarch64/aarch64.cc: aarch64_build_builtin_va_list().
+  // The AAPCS64 va_list is:
+  //   struct __va_list {
+  //     void *__stack;
+  //     void *__gr_top;
+  //     void *__vr_top;
+  //     int __gr_offs;
+  //     int __vr_offs;
+  //   };
+  // Note: unlike x86_64, this is NOT wrapped in an array.
 
   // Use a common dummy struct_or_union_def node such that all
   // struct_or_union_type instances created here refer to the same
@@ -232,26 +241,25 @@ target_aarch64_gcc::_create_builtin_va_list_type() const
       this->create_sou_layouter(struct_or_union_kind::souk_struct)
     };
 
-    l->add_member("gp_offset",
-		  std_int_type::create(std_int_type::kind::k_int, false));
-    l->add_member("fp_offset",
-		  std_int_type::create(std_int_type::kind::k_int, false));
-    l->add_member("overflow_arg_area", void_type::create()->derive_pointer());
-    l->add_member("reg_save_area", void_type::create()->derive_pointer());
+    l->add_member("__stack", void_type::create()->derive_pointer());
+    l->add_member("__gr_top", void_type::create()->derive_pointer());
+    l->add_member("__vr_top", void_type::create()->derive_pointer());
+    l->add_member("__gr_offs",
+		  std_int_type::create(std_int_type::kind::k_int, true));
+    l->add_member("__vr_offs",
+		  std_int_type::create(std_int_type::kind::k_int, true));
 
     soud->set_content(l->grab_result());
   }
 
-  return (struct_or_union_type::create(struct_or_union_kind::souk_struct,
-				       soud->get_decl_list_node())
-	  ->derive_array(mpa::limbs::from_size_type(1)));
+  return struct_or_union_type::create(struct_or_union_kind::souk_struct,
+				      soud->get_decl_list_node());
 }
 
 
 namespace
 {
 
-  // TODO:
   class _builtin_typedef_va_list final : public builtin_typedef
   {
   public:
