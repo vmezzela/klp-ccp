@@ -1,4 +1,8 @@
+# Run all generic (architecture-neutral) ccp test cases.
+# Architecture-specific tests (aarch64-*.c) are handled by their
+# own test drivers (ccp-aarch64-specific.exp).
 foreach src [glob -nocomplain $srcdir/$subdir/*.c] {
+    if {[regexp {/aarch64-} $src]} continue
     set testname $src
     run_ccp $src
 }
