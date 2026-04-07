@@ -450,26 +450,6 @@ void target_aarch64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
   }
 }
 
-target_aarch64_gcc::opts_aarch64::_target_flags_type target_aarch64_gcc::opts_aarch64::
-_init_valid_target_flags(const gcc_cmdline_parser::gcc_version &ver)
-{
-  _target_flags_type flags;
-  flags.set();
-
-  return flags;
-}
-
-
-target_aarch64_gcc::opts_aarch64::_isa_flags_type target_aarch64_gcc::opts_aarch64::
-_init_valid_isa_flags(const gcc_cmdline_parser::gcc_version &ver)
-{
-  _isa_flags_type flags;
-  flags.set();
-
-  return flags;
-}
-
-
 // This corresponds to the aarch64_arches table from GCC's
 // gcc/config/aarch64/aarch64.cc.  For now, only the architecture
 // version number is tracked; ISA extension features (like +crypto,
@@ -540,22 +520,13 @@ target_aarch64_gcc::opts_aarch64::get_arch_version() const noexcept
 
 target_aarch64_gcc::opts_aarch64::
 opts_aarch64(target_aarch64_gcc &t) noexcept
-  : _t(t), _valid_target_flags(_init_valid_target_flags(t.get_gcc_version())),
-    _valid_isa_flags(_init_valid_isa_flags(t.get_gcc_version())),
-    _arch(nullptr), _tune(nullptr), _arch_version(8),
-    _cmodel(_cm_unused), _cmodel_set(false), _fpmath(1UL << _fpmath_bit_unused),
-    _fpmath_set(false), force_align_arg_pointer(false),
-    force_align_arg_pointer_set(false), preferred_stack_boundary_arg(0),
-    preferred_stack_boundary_arg_set(false), preferred_stack_boundary(0),
-    incoming_stack_boundary_arg(0), incoming_stack_boundary_arg_set(false),
-    incoming_stack_boundary(0) {}
+  : _t(t), _arch(nullptr), _tune(nullptr), _arch_version(8)
+{}
 
 void target_aarch64_gcc::opts_aarch64::
 handle_opt(const gcc_cmdline_parser::option * const o,
 	   const char *val, const bool negative,
 	   const bool generated) {
-
-  using gcc_version = gcc_cmdline_parser::gcc_version;
 
   assert(o);
 
