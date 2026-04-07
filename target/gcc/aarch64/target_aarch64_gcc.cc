@@ -360,6 +360,7 @@ void target_aarch64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
       builtin_object_macros = {
           {"__aarch64__", "1"},
           {"__ARM_64BIT_STATE", "1"},
+          {"__AARCH64EL__", "1"},
 
           {"__SIZE_TYPE__", "long unsigned int"},
           {"__SIG_ATOMIC_TYPE__", "int"},

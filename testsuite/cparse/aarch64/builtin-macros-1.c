@@ -8,6 +8,10 @@
 #error "__ARM_64BIT_STATE is not defined"
 #endif
 
+#ifndef __AARCH64EL__
+#error "__AARCH64EL__ is not defined"
+#endif
+
 #if __CHAR_BIT__ != 8
 #error "__CHAR_BIT__ is not 8"
 #endif
