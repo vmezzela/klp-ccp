@@ -1,0 +1,17 @@
+#define __cold __attribute__((__cold__))
+#define __section(S) __attribute__((__section__(S)))
+
+#ifndef __latent_entropy
+#define __latent_entropy
+#endif
+
+#ifndef __no_kstack_erase
+#define __no_kstack_erase
+#endif
+
+#define __init __section(".init.text") __cold __latent_entropy __no_kstack_erase
+
+static int __init pu_init_issue(void)
+{
+	return 0;
+}
