@@ -1,0 +1,9 @@
+/* klp-ccp: from testsuite/ccp/macros-33.c */
+#define __cold __attribute__((__cold__))
+#define __latent_entropy
+#define __init __cold __latent_entropy
+
+static int __init klpp_pu_f(void)
+{
+	return 0;
+}
