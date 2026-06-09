@@ -100,29 +100,18 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
                 )
         self._patched_funcs = set(self._cfg_patched_funcs)
         if not no_complete_patched_funcs:
-            for f in self._cfg_patched_funcs:
-                spawns = self._patched_src_ipa_clones.find_spawns_recursive(f)
-                if not spawns:
-                    continue
-                for (f, optimized) in spawns.items():
-                    if not optimized:
-                        self._patched_funcs.add(f)
-                    else:
-                        print('warning: optimized function \"' +
-                              f +'\" in callgraph', file=sys.stderr)
-
+            self._patched_funcs = self._complete_patched_funcs(self._cfg_patched_funcs)
+            with open(self._cfg_work_dir + '/patched_funcs', "w") as file:
+                file.write('\n'.join(
+                    self._get_patched_funcs(self._patched_funcs)
+                ))
 
         patched_obj_ko = os.path.basename(self._cfg_patched_obj_filename)
         if patched_obj_ko.startswith('vmlinux'):
             self._patched_obj_name = 'vmlinux'
         else:
-            patched_obj_ko = os.path.splitext(patched_obj_ko)
-            if patched_obj_ko[1] != '.ko':
-                raise ValueError('invalid module filename extension in \"' +
-                                 self._cfg_patched_obj_filename + '\"')
-            self._patched_obj_name = \
-                patched_obj_ko[0].translate({ord('-') : ord('_')})
-
+            patched_obj_ko = re.sub(r'(?:\.ko)?(?:\.gz|\.xz|\.zst)?$', '', patched_obj_ko)
+            self._patched_obj_name = patched_obj_ko.translate({ord("-"): ord("_")})
 
         self._re_eligible_header_filename = []
         self._re_eligible_header_filename.append(
@@ -157,6 +146,46 @@ class KlpPolicy(ccp.LpCreationPolicyAbc):
         self._externalized_objs_fd = open(self._cfg_work_dir + '/obj_exts',
                                           'w')
 
+
+    def _complete_patched_funcs(self, funcs):
+        patched = set(funcs)
+        for cfg_f in funcs:
+            spawns = self._patched_src_ipa_clones.find_spawns_recursive(cfg_f)
+            if not spawns:
+                continue
+            for (f, optimized) in spawns.items():
+                if not optimized:
+                    patched.add(f)
+                else:
+                    print('warning: optimized function \"' +
+                          f +'\" in callgraph', file=sys.stderr)
+
+        return patched
+
+    def _get_patched_funcs(self, funcs):
+        patched = set()
+        for f in funcs:
+            # Filter out fully inlined functions and return only
+            # those with a corresponding symbol in the obj.
+            elf_syms = self._patched_obj_elf.elf_syms.get(f)
+            if not elf_syms:
+                continue
+            in_elf = any([self._elf_sym_is_fun_def_sym(s) for s in elf_syms])
+            if not in_elf:
+                continue
+
+            # If there's one or more symbols use the IPA to catch
+            # possible conflicts.
+            in_ipa = not self._patched_src_ipa_clones.all_instances_removed(f)
+            if not in_ipa:
+                print('warning: \"' + f +
+                      '\" symbol found in ELF but IPA says removed.',
+                      file=sys.stderr)
+                continue
+
+            patched.add(f)
+
+        return patched
 
     def is_patched_fun(self, function_name):
         return function_name in self._patched_funcs
