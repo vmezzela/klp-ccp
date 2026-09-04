@@ -7,9 +7,15 @@ License:	GPL-2.0
 Group:		Development/Tools/Building
 Url:		https://github.com/SUSE/klp-ccp
 Source:	klp-ccp-%{version}.tar.gz
+%if 0%{?suse_version} < 1600
+Requires:	python311
+Requires:	python311-magic
+BuildRequires:	python311-devel
+%else
 Requires:	python313
 Requires:	python313-magic
 BuildRequires:	python313-devel
+%endif
 BuildRequires:	make
 BuildRequires:	gcc-c++
 BuildRequires:	pkgconfig
@@ -58,7 +64,11 @@ done
 %package policy-suse-klp
 Summary:	SUSE klp-ccp kernel livepatch policy
 Requires:	klp-ccp == %{version}
+%if 0%{?suse_version} < 1600
+Requires:	python311-pyelftools
+%else
 Requires:	python313-pyelftools
+%endif
 
 %description policy-suse-klp
 klp-ccp policy implementation used by SUSE for creating kernel
