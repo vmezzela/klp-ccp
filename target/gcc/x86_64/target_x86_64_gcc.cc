@@ -526,18 +526,18 @@ void target_x86_64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
 	{ "__FLT_MANT_DIG__", "24" },
 	{ "__DBL_MANT_DIG__", "53" },
 
-	{ "__SIZEOF_POINTER__", "sizeof(void*)" },
-	{ "__SIZEOF_SIZE_T__", "sizeof(unsigned long)" },
-	{ "__SIZEOF_PTRDIFF_T__", "sizeof(long)" },
-	{ "__SIZEOF_SHORT__", "sizeof(short)" },
-	{ "__SIZEOF_INT__", "sizeof(int)" },
-	{ "__SIZEOF_LONG__", "sizeof(long)" },
-	{ "__SIZEOF_LONG_LONG__", "sizeof(long long)" },
-	{ "__SIZEOF_WCHAR_T__", "sizeof(int)" },
-	{ "__SIZEOF_WINT_T__", "sizeof(unsigned int)" },
-	{ "__SIZEOF_FLOAT__", "sizeof(float)" },
-	{ "__SIZEOF_DOUBLE__", "sizeof(double)" },
-	{ "__SIZEOF_LONG_DOUBLE__", "sizeof(long double)" },
+	{ "__SIZEOF_POINTER__", "8" },
+	{ "__SIZEOF_SIZE_T__", "8" },
+	{ "__SIZEOF_PTRDIFF_T__", "8" },
+	{ "__SIZEOF_SHORT__", "2" },
+	{ "__SIZEOF_INT__", "4" },
+	{ "__SIZEOF_LONG__", "8" },
+	{ "__SIZEOF_LONG_LONG__", "8" },
+	{ "__SIZEOF_WCHAR_T__", "4" },
+	{ "__SIZEOF_WINT_T__", "4" },
+	{ "__SIZEOF_FLOAT__", "4" },
+	{ "__SIZEOF_DOUBLE__", "8" },
+	{ "__SIZEOF_LONG_DOUBLE__", "16" },
 
 	{ "__BIGGEST_ALIGNMENT__", "16" },
   };
@@ -546,7 +546,7 @@ void target_x86_64_gcc::_arch_register_builtin_macros(preprocessor &pp) const
     pp.register_builtin_macro(bom.first, bom.second);
 
   if (_is_int_mode_enabled(common_int_mode_kind::cimk_TI)) {
-    pp.register_builtin_macro("__SIZEOF_INT128__", "sizeof(__int128)");
+    pp.register_builtin_macro("__SIZEOF_INT128__", "16");
   }
 }
 
