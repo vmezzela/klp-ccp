@@ -28,9 +28,17 @@ AC_DEFINE_UNQUOTED([BISON_YYLA_HAS_TYPE], [$BISON_YYLA_HAS_TYPE],
                     token, which has been renamed to .kind_ in later versions])
 
 
-PKG_CHECK_MODULES([PYTHON3_EMBED], [python3-embed],
-		  [],
-		  AC_MSG_ERROR[Python development files not found])
+python3_embed_found=no
+for python3_embed_pkg in python-3.13-embed python-3.12-embed python-3.11-embed python3-embed; do
+  PKG_CHECK_MODULES([PYTHON3_EMBED], [$python3_embed_pkg],
+		    [python3_embed_found=yes], [:])
+  if test "x$python3_embed_found" = xyes; then
+    break
+  fi
+done
+if test "x$python3_embed_found" != xyes; then
+  AC_MSG_ERROR([Python development files not found])
+fi
 
 AC_CONFIG_FILES([Makefile
 		 target/Makefile
