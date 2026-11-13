@@ -4374,7 +4374,7 @@ public:
     {
       rescan_macro_invocation_edit_script src_edit_script;
       rescan_macro_invocation_edit_script_rescanned_ranges src_rescanned_ranges;
-      unexpanded_macro_id_out_tokens_origin_traces
+      klp::ccp::unexpanded_macro_id_out_tokens_origin_traces
 	unexpanded_macro_id_out_tokens_origin_traces;
       std::vector<rewritten_expansion_forest::nodes_size_type>
 	rewritten_rescan_macro_invocation_children;
@@ -4434,7 +4434,7 @@ public:
   {
     rescan_macro_invocation_edit_script src_edit_script;
     rescan_macro_invocation_edit_script_rescanned_ranges rescanned_src_ranges;
-    unexpanded_macro_id_out_tokens_origin_traces
+    klp::ccp::unexpanded_macro_id_out_tokens_origin_traces
       unexpanded_macro_id_out_tokens_origin_traces;
     // The rewritten nodes of the subtree's top level invocations,
     // i.e. the rescan children of the (argument tree) root.
@@ -4491,7 +4491,7 @@ private:
     rescan_macro_invocation mi;
     rescan_macro_invocation_edit_script out_edit_script;
     rescan_macro_invocation_edit_script_rescanned_ranges rescanned_out_ranges;
-    unexpanded_macro_id_out_tokens_origin_traces
+    klp::ccp::unexpanded_macro_id_out_tokens_origin_traces
       unexpanded_macro_id_out_tokens_origin_traces;
     std::vector<rewritten_rescan_macro_invocation_child>
       rewritten_rescan_macro_invocation_children;
