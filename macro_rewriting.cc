@@ -5871,7 +5871,7 @@ _join_segment_into(const _rewrite_segments_type::iterator &it_dst,
       case mi_edit_script_op::op::insert_token:
 	/* fall through */
       case mi_edit_script_op::op::insert_ws:
-	/* fall through */
+	break;
       }
       return false;
     };
@@ -5890,7 +5890,7 @@ _join_segment_into(const _rewrite_segments_type::iterator &it_dst,
       case mi_edit_script_op::op::insert_token:
 	/* fall through */
       case mi_edit_script_op::op::insert_ws:
-	/* fall through */
+	break;
       }
       return false;
     };
@@ -9518,7 +9518,7 @@ rescan_macro_invocation_rewriter::_impl::finalize()
 	case mi_edit_script_op::op::insert_token:
 	  /* fall through */
 	case mi_edit_script_op::op::insert_ws:
-	  /* fall through */
+	  break;
 	}
 	res.src_edit_script.push_back(std::move(op));
       }
