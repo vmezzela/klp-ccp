@@ -2159,7 +2159,7 @@ get_concat_sequence_fragment() const noexcept
 
 
 expansion_forest::rescan_macro_invocation::output::output() noexcept
-  = default;
+{}
 
 expansion_forest::rescan_macro_invocation::output::output(output &&) noexcept
   = default;
@@ -2791,7 +2791,8 @@ output_fragment_origin::get_builtin_special_origin() const noexcept
 
 
 expansion_forest::rescan_subtree::const_final_out_origin_iterator::
-const_final_out_origin_iterator() noexcept = default;
+const_final_out_origin_iterator() noexcept
+{}
 
 expansion_forest::rescan_subtree::const_final_out_origin_iterator::
 const_final_out_origin_iterator
