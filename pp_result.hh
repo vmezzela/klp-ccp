@@ -1429,7 +1429,7 @@ namespace klp
 
 	      struct value_type
 	      {
-		const fragment &fragment;
+		const rescan_macro_invocation::output::fragment &fragment;
 		// Relative to the fragment output's beginning.
 		rescan_macro_invocation::output::tokens_range range_in_fragment;
 	      };
