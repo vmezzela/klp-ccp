@@ -37,6 +37,7 @@ noinst_HEADERS =				\
 	pp_except.hh				\
 	pp_expr_parser_driver.hh		\
 	pp_result.hh				\
+	pp_result_impl.hh			\
 	pp_token.hh				\
 	pp_tokens.hh				\
 	pp_tokens_range.hh			\
